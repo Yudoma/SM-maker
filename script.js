@@ -9,6 +9,7 @@ const leftToggle = document.getElementById('left-drawer-toggle');
 const rightDrawer = document.getElementById('right-drawer');
 const rightToggle = document.getElementById('right-drawer-toggle');
 const layerListContainer = document.getElementById('layer-list');
+const fileNamePreview = document.getElementById('fileNamePreview'); // ファイル名プレビュー用
 
 // 入力コントロール
 const canvasStandard = document.getElementById('canvasStandard');
@@ -671,15 +672,57 @@ function hexToRgba(hex, alpha) {
     return `rgba(${r},${g},${b},${alpha})`;
 }
 
-// --- 保存機能 ---
+// --- 保存機能 & ファイル名生成ロジック ---
+
+/**
+ * 現在の入力に基づいてクリーンなファイル名を生成する
+ * 形式: [コスト]_[カード名(ルビ抜き)]_[BP(改行抜き)].png
+ * OS禁止文字はアンダースコアに置換
+ */
+function getCleanFileName() {
+    const cost = manaCost.value;
+    
+    // カード名: 改行とルビ(カッコと中身)を除去
+    let rawName = inputs.cardName.text.value || "";
+    // \([^\)]*\) -> 半角カッコと中身を除去
+    // （[^）]*） -> 全角カッコと中身を除去
+    let name = rawName.replace(/\([^\)]*\)/g, "").replace(/（[^）]*）/g, "").replace(/\n/g, "");
+    
+    // BP: 改行を除去
+    let rawBP = inputs.bp.text.value || "";
+    let bp = rawBP.replace(/\n/g, "");
+
+    // ファイル名に使用できない文字を置換 (< > : " / \ | ? *)
+    // Windows等での保存トラブル防止のため、アンダースコアに置換します
+    const sanitize = (str) => str.replace(/[<>:"/\\|?*]/g, "_");
+
+    // 空白の場合はプレースホルダーを入れる等の調整も可能ですが、
+    // ここでは単純に結合します。
+    return `${cost}_${sanitize(name)}_${sanitize(bp)}`;
+}
+
+/**
+ * 左メニューのファイル名プレビューを更新する
+ */
+function updateFileNamePreview() {
+    if(fileNamePreview) {
+        // textContent -> innerHTML に変更して <br> を有効化
+        fileNamePreview.innerHTML = `保存ファイル名<br>${getCleanFileName()}.png`;
+    }
+}
+
+// ファイル名に関わる要素が変更されたらプレビューを更新
+manaCost.addEventListener('change', updateFileNamePreview);
+inputs.cardName.text.addEventListener('input', updateFileNamePreview);
+inputs.bp.text.addEventListener('input', updateFileNamePreview);
+
 saveImageBtn.addEventListener('click', () => {
-    drawCanvas();
-    // ファイル名用にルビ記号を除去したテキストを取得
-    const rawName = inputs.cardName.text.value;
-    const cleanName = rawName.replace(/[\(\)（）]/g, "").replace(/\n/g, "") || "card_image";
+    drawCanvas(); // 最新状態を描画
+    
+    const fileName = getCleanFileName();
     
     const link = document.createElement('a');
-    link.download = `${cleanName}.png`;
+    link.download = `${fileName}.png`;
     link.href = canvas.toDataURL('image/png');
     link.click();
 });
@@ -687,4 +730,5 @@ saveImageBtn.addEventListener('click', () => {
 // 初期描画
 setTimeout(() => {
     updateCanvasSettings();
+    updateFileNamePreview(); // 初期プレビュー表示
 }, 100);
