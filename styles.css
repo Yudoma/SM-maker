@@ -2,10 +2,9 @@ body {
     font-family: "Meiryo", "Yu Gothic", Arial, sans-serif;
     margin: 0;
     background-color: #333;
-    overflow: hidden; /* 画面全体のスクロールを禁止 */
+    overflow: hidden;  
 }
 
-/* メイン表示エリア */
 .container {
     position: fixed;
     top: 0;
@@ -14,38 +13,32 @@ body {
     bottom: 0;
     margin-left: 0;
     margin-right: 0;
-    
-    /* 画面中央に配置 */
+
     display: flex;
     justify-content: center;
     align-items: center;
     
-    padding: 20px; /* 画面端との余白 */
+    padding: 20px;  
     box-sizing: border-box;
     transition: margin 0.3s ease;
     z-index: 1;
-    
-    /* コンテナ自体は高さを確保 */
+
     height: 100vh;
 }
 
 body.is-left-open .container { margin-left: 300px; }
 body.is-right-open .container { margin-right: 350px; }
 
-/* キャンバスエリア（ドロップゾーン） */
 #imageDropzone {
     position: relative;
-    
-    /* フレックス(inline)にして中身のサイズに枠を密着させる */
+
     display: inline-flex;
     justify-content: center;
     align-items: center;
-    
-    /* コンテナからはみ出さないように制限 */
+
     max-width: 100%;
     max-height: 100%;
-    
-    /* サイズは中身(canvas)なりにする */
+
     width: auto;
     height: auto;
     
@@ -63,7 +56,7 @@ body.is-right-open .container { margin-right: 350px; }
 }
 
 .dropzone-text {
-    /* Canvasの上に重ねて表示（レイアウト崩れ防止のため絶対配置） */
+     
     position: absolute;
     top: 50%;
     left: 50%;
@@ -83,24 +76,17 @@ body.is-right-open .container { margin-right: 350px; }
 
 canvas {
     background-color: #fff;
-    /* インライン要素特有の隙間(ディセンダー)を消す */
+     
     display: block;
-    
-    /* --- 重要: 画面フィット設定 --- */
-    
-    /* 幅は親(コンテナ)の幅まで */
+
     max-width: 100%;
-    
-    /* 高さは「画面の高さ - 余白(40px)」を超えないように制限 */
-    /* これにより、ウィンドウが縦に短くても確実にはみ出しを防ぐ */
+
     max-height: calc(100vh - 40px);
-    
-    /* アスペクト比を維持してサイズ自動調整 */
+
     width: auto;
     height: auto;
 }
 
-/* ドロワー共通 */
 .drawer {
     position: fixed;
     top: 0;
@@ -130,19 +116,16 @@ canvas {
 }
 .drawer-toggle:hover { background-color: #f0f0f0; }
 
-/* 左ドロワー */
 .left-drawer { left: 0; width: 300px; transform: translateX(-100%); }
 .left-drawer.open { transform: translateX(0); }
 .left-toggle { left: 20px; transition: left 0.3s ease; }
 .left-drawer.open ~ .left-toggle { left: 320px; }
 
-/* 右ドロワー */
 .right-drawer { right: 0; width: 350px; transform: translateX(100%); }
 .right-drawer.open { transform: translateX(0); }
 .right-toggle { right: 20px; transition: right 0.3s ease; }
 .right-drawer.open ~ .right-toggle { right: 370px; }
 
-/* 操作パネル内 */
 .controls { display: flex; flex-direction: column; gap: 20px; }
 
 .control-group { display: flex; flex-direction: column; }
@@ -192,7 +175,6 @@ button {
 }
 button:hover { background-color: #0056b3; }
 
-/* レイヤーリスト */
 .layer-list {
     margin-top: 10px;
     border: 1px solid #ddd;
