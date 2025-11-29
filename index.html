@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S＆Mカードメーカーver1.0</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div id="left-drawer" class="drawer left-drawer open">
+        <h2>背面画像・素材</h2>
+        <div class="control-group">
+            <p style="font-size:12px; color:#666;">
+                画像をキャンバスにドラッグ＆ドロップすると背景として設定されます。
+            </p>
+        </div>
+        <hr>
+        <h2>レイヤー (背面)</h2>
+        <div id="layer-list" class="layer-list"></div>
+
+        <hr style="margin-top: 20px;">
+        
+        <div class="button-group" style="justify-content: center; margin-top: 10px;">
+            <button id="saveImageBtn" style="width:100%; padding:15px; font-size:18px; font-weight:bold;">画像を保存</button>
+        </div>
+        <div class="input-row" style="justify-content: center; margin-top:10px;">
+            <span style="font-size:12px; color:#666;">※保存ファイル名はカード名になります</span>
+        </div>
+
+        <div style="margin-top: 25px; font-size: 13px; color: #333; border-top: 1px solid #ddd; padding-top: 15px;">
+            <p style="font-weight: bold; margin-bottom: 8px;">・オリカ作成おすすめツール</p>
+            <p style="margin: 8px 0;">
+                <a href="https://ha710.com/dmcardgen/" target="_blank" rel="noopener noreferrer" style="color:#007bff; text-decoration:none;">デュエル・マスターズ（外部リンク）</a>
+            </p>
+            <p style="margin: 8px 0;">
+                <a href="https://tt0.link/yu_gi_oh-original-card/" target="_blank" rel="noopener noreferrer" style="color:#007bff; text-decoration:none;">遊戯王（外部リンク）</a>
+            </p>
+        </div>
+    </div>
+    <button id="left-drawer-toggle" class="drawer-toggle left-toggle">☰</button>
+
+    <div class="container">
+        <div id="imageDropzone">
+            <img id="overlayImage" style="display:none;" crossorigin="anonymous">
+            
+            <input type="file" id="bgImageInput" accept="image/*" style="display: none;">
+            <canvas id="canvas"></canvas>
+            <div class="dropzone-text">
+                <p>画像をドラッグ＆ドロップ<br>（背景設定）</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="right-drawer" class="drawer right-drawer open">
+        <h2>カード設定</h2>
+        <div class="controls">
+            
+            <div class="control-group box-style">
+                <label>基本設定</label>
+                <div class="input-row">
+                    <span>規格:</span>
+                    <select id="canvasStandard">
+                        <option value="608x1080">608x1080規格</option>
+                        <option value="768x1366">768x1366規格</option>
+                    </select>
+                </div>
+                <div class="input-row" style="margin-top:5px;">
+                    <span>属性:</span>
+                    <select id="cardAttribute">
+                        <option value="S">S</option>
+                        <option value="M">M</option>
+                    </select>
+                </div>
+                <div class="input-row" style="margin-top:5px;">
+                    <span>マナ:</span>
+                    <select id="manaCost">
+                        </select>
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="control-group">
+                <label>入力：カード名</label>
+                <textarea id="inputCardName" rows="2" placeholder="カード名">カード名(ルビ)</textarea>
+                <div class="input-row">
+                    <span>サイズ:</span>
+                    <select id="unitCardName" class="unit-select">
+                        <option value="%">%</option>
+                        <option value="px">px</option>
+                    </select>
+                    <input type="number" id="sizeCardName" value="6" step="0.1">
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>入力：フレーバーテキスト</label>
+                <textarea id="inputFlavor" rows="3" placeholder="フレーバーテキスト">フレーバーテキスト(ルビ)</textarea>
+                <div class="input-row">
+                    <span>サイズ:</span>
+                    <select id="unitFlavor" class="unit-select">
+                        <option value="%">%</option>
+                        <option value="px">px</option>
+                    </select>
+                    <input type="number" id="sizeFlavor" value="3.5" step="0.1">
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>入力：BP/スペル</label>
+                <textarea id="inputBP" rows="2" placeholder="BP/スペル">BP：/スペル</textarea>
+                <div class="input-row">
+                    <span>サイズ:</span>
+                    <select id="unitBP" class="unit-select">
+                        <option value="%">%</option>
+                        <option value="px">px</option>
+                    </select>
+                    <input type="number" id="sizeBP" value="5" step="0.1">
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>入力：効果</label>
+                <textarea id="inputEffect" rows="4" placeholder="効果">効果(ルビ)</textarea>
+                <div class="input-row">
+                    <span>サイズ:</span>
+                    <select id="unitEffect" class="unit-select">
+                        <option value="%">%</option>
+                        <option value="px">px</option>
+                    </select>
+                    <input type="number" id="sizeEffect" value="3" step="0.1">
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <button id="right-drawer-toggle" class="drawer-toggle right-toggle">☰</button>
+
+    <script src="script.js"></script>
+</body>
+</html>
