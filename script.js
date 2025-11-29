@@ -223,7 +223,7 @@ function drawCanvas() {
         },
          
         sm_608: {
-            top: 14,     
+            top: 12,     
             right: 12    
         }
     };
