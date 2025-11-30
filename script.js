@@ -655,14 +655,137 @@ manaCost.addEventListener('change', updateFileNamePreview);
 inputs.cardName.text.addEventListener('input', updateFileNamePreview);
 inputs.bp.text.addEventListener('input', updateFileNamePreview);
 
+// --- PNGデータ埋め込み関連の関数 ---
+
+// CRC32計算テーブルの生成
+const crcTable = (() => {
+    let c;
+    const table = [];
+    for (let n = 0; n < 256; n++) {
+        c = n;
+        for (let k = 0; k < 8; k++) {
+            c = ((c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1));
+        }
+        table[n] = c;
+    }
+    return table;
+})();
+
+// CRC32チェックサムを計算する関数
+function crc32(bytes) {
+    let crc = -1;
+    for (let i = 0; i < bytes.length; i++) {
+        crc = (crc >>> 8) ^ crcTable[(crc ^ bytes[i]) & 0xFF];
+    }
+    return (crc ^ -1) >>> 0;
+};
+
+// PNGデータURLにテキストデータを埋め込む関数
+function injectDataIntoPNG(dataUrl, key, text) {
+    // DataURLからbase64部分をデコード
+    const base64Data = dataUrl.substring(dataUrl.indexOf(',') + 1);
+    const decodedData = atob(base64Data);
+    const bytes = new Uint8Array(decodedData.length);
+    for (let i = 0; i < decodedData.length; i++) {
+        bytes[i] = decodedData.charCodeAt(i);
+    }
+
+    // PNGシグネチャをスキップ (8バイト)
+    const pngSignature = [137, 80, 78, 71, 13, 10, 26, 10];
+    let offset = 8;
+
+    // キーとテキストをUTF-8にエンコード
+    const textEncoder = new TextEncoder();
+    const keyBytes = textEncoder.encode(key);
+    const textBytes = textEncoder.encode(text);
+    
+    // tEXtチャンクのデータ部分を作成 (key + null separator + text)
+    const chunkData = new Uint8Array(keyBytes.length + 1 + textBytes.length);
+    chunkData.set(keyBytes, 0);
+    chunkData.set([0], keyBytes.length);
+    chunkData.set(textBytes, keyBytes.length + 1);
+
+    // チャンクタイプ (tEXt)
+    const chunkType = new Uint8Array([116, 69, 88, 116]);
+    
+    // CRC計算用のデータ (Chunk Type + Chunk Data)
+    const crcData = new Uint8Array(chunkType.length + chunkData.length);
+    crcData.set(chunkType, 0);
+    crcData.set(chunkData, chunkType.length);
+    
+    // CRCチェックサムを計算
+    const crc = crc32(crcData);
+
+    // 新しいtEXtチャンクを構築
+    const chunkLength = chunkData.length;
+    const newChunk = new Uint8Array(4 + 4 + chunkLength + 4);
+    const view = new DataView(newChunk.buffer);
+    
+    // 1. Length (4バイト)
+    view.setUint32(0, chunkLength, false); 
+    // 2. Chunk Type (4バイト)
+    newChunk.set(chunkType, 4);
+    // 3. Chunk Data
+    newChunk.set(chunkData, 8);
+    // 4. CRC (4バイト)
+    view.setUint32(8 + chunkLength, crc, false);
+
+    // IENDチャンクの位置を見つける
+    // 通常、IENDは最後の12バイト
+    const iendOffset = bytes.length - 12;
+    
+    // 新しいバイト配列を作成 (元のデータ + 新しいチャンク)
+    const newBytes = new Uint8Array(bytes.length + newChunk.length);
+    // IENDチャンクの前までをコピー
+    newBytes.set(bytes.subarray(0, iendOffset), 0);
+    // 新しいチャンクを挿入
+    newBytes.set(newChunk, iendOffset);
+    // IENDチャンクを末尾にコピー
+    newBytes.set(bytes.subarray(iendOffset), iendOffset + newChunk.length);
+
+    // 新しいPNGデータをBase64に再エンコード
+    let newBinary = '';
+    for (let i = 0; i < newBytes.length; i++) {
+        newBinary += String.fromCharCode(newBytes[i]);
+    }
+    const newBase64 = btoa(newBinary);
+
+    return 'data:image/png;base64,' + newBase64;
+}
+
+// カードデータをJSON文字列として取得する関数
+function getCardDataAsJson() {
+    const data = {
+        attribute: cardAttribute.value,
+        mana: manaCost.value,
+        cardName: inputs.cardName.text.value.replace(/\r?\n/g, ' '),
+        flavor: inputs.flavor.text.value.replace(/\r?\n/g, ' '),
+        bp: inputs.bp.text.value.replace(/\r?\n/g, ' '),
+        effect: inputs.effect.text.value.replace(/\r?\n/g, ' ')
+    };
+    return JSON.stringify(data);
+}
+
 saveImageBtn.addEventListener('click', () => {
+    // 最終描画
     drawCanvas();  
     
+    // データをJSON形式で取得
+    const cardDataJson = getCardDataAsJson();
+    
+    // 元の画像データを取得
+    const originalPngDataUrl = canvas.toDataURL('image/png');
+    
+    // PNGにデータを埋め込む
+    const newPngDataUrl = injectDataIntoPNG(originalPngDataUrl, 'smCardData', cardDataJson);
+
+    // ファイル名を生成
     const fileName = getCleanFileName();
     
+    // 新しいデータでリンクを作成してダウンロード
     const link = document.createElement('a');
     link.download = `${fileName}.png`;
-    link.href = canvas.toDataURL('image/png');
+    link.href = newPngDataUrl;
     link.click();
 });
 
